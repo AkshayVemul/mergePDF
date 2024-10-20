@@ -1,17 +1,13 @@
 import { PageSizes, PDFDocument } from "npm:pdf-lib";
-import * as path from "jsr:@std/path";
 
-async function mergePagesInSinglePdf(
-  inputPdfPath: string,
+export async function cropAndMerge(
+  inputPdfBuffer: Uint8Array,
   outputPdfPath: string
 ) {
-  const pageHeight = PageSizes.A4[1]; // A4 height in points
-  const pageWidth = PageSizes.A4[0]; // A4 width in points
+  const pageHeight = PageSizes.A4[1];
+  const pageWidth = PageSizes.A4[0];
 
   try {
-    // Load the input PDF
-    const inputPdfBuffer = Deno.readFileSync(inputPdfPath);
-
     const inputPdfDoc = await PDFDocument.load(inputPdfBuffer);
 
     inputPdfDoc.getPages().forEach((page) => {
@@ -29,19 +25,18 @@ async function mergePagesInSinglePdf(
     const mergedPdfDoc = await PDFDocument.create();
 
     // Process the PDF in pairs of pages
-    for (let i = 0; i < totalPages; i += 2) {
-      const [page1] = await mergedPdfDoc.embedPdf(croppedPdfDoc, [i]);
+    for (let index = 0; index < totalPages; index += 2) {
+      const [page1] = await mergedPdfDoc.embedPdf(croppedPdfDoc, [index]);
 
       let page2 = null;
 
-      if (i + 1 < totalPages) {
-        [page2] = await mergedPdfDoc.embedPdf(croppedPdfDoc, [i + 1]);
+      if (index + 1 < totalPages) {
+        [page2] = await mergedPdfDoc.embedPdf(croppedPdfDoc, [index + 1]);
       }
 
       // Create a new page in the merged document
       const mergedPage = mergedPdfDoc.addPage(PageSizes.A4);
 
-      // Draw the first page on the top half of the A4 page
       mergedPage.drawPage(page1, {
         x: 0,
         y: pageHeight / 2,
@@ -49,7 +44,6 @@ async function mergePagesInSinglePdf(
         height: pageHeight / 2,
       });
 
-      // Draw the second page on the bottom half of the A4 page, if it exists
       if (page2) {
         mergedPage.drawPage(page2, {
           x: 0,
@@ -64,15 +58,7 @@ async function mergePagesInSinglePdf(
     const mergedPdfBytes = await mergedPdfDoc.save();
 
     Deno.writeFileSync(outputPdfPath, mergedPdfBytes);
-
-    console.log(`Merged PDF saved as ${outputPdfPath}`);
   } catch (error) {
     console.error("Error:", error);
   }
 }
-
-// Example usage
-const inputPdfPath = path.join(Deno.cwd(), "/input/labels.pdf");
-const outputPdfPath = path.join(Deno.cwd(), "/output/merged_output.pdf");
-// Output PDF path
-mergePagesInSinglePdf(inputPdfPath, outputPdfPath);
