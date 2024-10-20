@@ -1,9 +1,6 @@
 import { PageSizes, PDFDocument } from "npm:pdf-lib";
 
-export async function cropAndMerge(
-  inputPdfBuffer: Uint8Array,
-  outputPdfPath: string
-) {
+export async function cropAndMerge(inputPdfBuffer: Uint8Array) {
   const pageHeight = PageSizes.A4[1];
   const pageWidth = PageSizes.A4[0];
 
@@ -57,7 +54,11 @@ export async function cropAndMerge(
     // Serialize the final merged PDF document to bytes (Uint8Array)
     const mergedPdfBytes = await mergedPdfDoc.save();
 
+    const outputPdfPath = await Deno.makeTempFile();
+
     Deno.writeFileSync(outputPdfPath, mergedPdfBytes);
+
+    return outputPdfPath;
   } catch (error) {
     console.error("Error:", error);
   }
