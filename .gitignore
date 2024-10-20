@@ -1,0 +1,9 @@
+#editor configs
+.vscode
+
+#output/input files
+output
+input
+
+#macOS
+.DS_Store

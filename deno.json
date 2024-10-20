@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "deno run --watch src/main.ts",
+    "merge-pdf": "deno run -R -W src/main.ts"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1"
+  },
+  "license": "MIT"
+}
